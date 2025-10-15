@@ -1,0 +1,142 @@
+.logo {
+  display: flex;
+  margin: 20px;
+}
+
+.site-layout-background {
+  background: rgb(238, 234, 234);
+}
+
+.content {
+  margin: 24px 16px;
+  padding: 24px;
+  background: #fff;
+  min-height: 280px;
+}
+
+.logout-button {
+  margin-right: 16px;
+}
+
+.ant-layout-sider-trigger {
+  background: linear-gradient(to left, #468cc1, #3eab94) !important;
+  /* Additional styles if needed */
+}
+
+.form-section .form-group label {
+  font-size: 16px;
+}
+
+.ant-form-item-label label {
+  font-size: 14px !important;
+  font-weight: 500;
+}
+
+.ant-form-item-label label {
+  font-size: 14px !important;
+  font-weight: 500;
+}
+
+.ant-form-item-explain label {
+  margin-bottom: 20px !important;
+}
+
+.ant-col.ant-form-item-label {
+  padding-bottom: 4px !important;
+  padding-left: 2px !important;
+}
+
+.ant-input-status-error.ant-input-disabled,
+.ant-input-status-error.ant-input-disabled:hover {
+  border-color: #ff4d4f;
+  background-color: red;
+}
+
+
+.ant-input-disabled,
+.ant-input-number-disabled,
+.ant-picker-disabled {
+  background-color: #fafafa !important;
+  border-color: #ececec !important;
+  color: #495057 !important;
+}
+
+
+/* multiselect selected tags */
+.ant-select-disabled   .ant-select-selector  .ant-select-selection-item{
+    color: #495057 !important;
+  }
+
+
+/* disabled select  */
+
+.ant-select-disabled .ant-select-selector {
+
+  background-color: #fafafa !important;
+  border-color: #ececec !important; 
+} 
+
+
+
+.ant-picker-input input {
+  color: #495057 !important;
+}
+
+.ant-radio-group span {
+  color: #495057 !important;
+}
+
+
+
+.ant-checkbox-disabled+span{
+  color: #495057 !important;
+}
+
+
+
+.ant-table table {
+  font-size: 13px;
+}
+
+.ant-table-thead > tr > th {
+  font-size: 12px;
+  font-weight: bold !important;
+}
+
+.sun-editor .se-toolbar {
+  height: 40px !important;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.sun-editor .se-btn-tray {
+  padding-top: 2px !important;
+}
+
+.sun-editor {
+  border-radius: 6px;
+}
+
+.sun-editor-editable {
+  background-color: #fff0 !important;
+}
+
+.sun-editor .se-svg,
+.sun-editor button > svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.disabled-multiselect .ant-select-selection-item {
+      background-color: #EFEFEF !important;
+      border: 1px solid #E3E3E3;
+  }
+
+
+
+  .hide {
+    display: none;
+  }
+  .show{
+    display: block;
+  }

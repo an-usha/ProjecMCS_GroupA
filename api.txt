@@ -1,0 +1,7 @@
+API Name: GetAccountDetailsByNameAndSolId
+
+{
+"accountName":"Suyogya Manandhar",
+"solId":"001",
+"TransactionId":"004-Callcente7r" 
+}
