@@ -10,9 +10,7 @@ import {
   Image,
   Typography,
 } from "antd";
-import logo from "../../assets/images/logo.svg";
 import {
-  UserOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
 } from "@ant-design/icons";
@@ -20,7 +18,6 @@ import { Outlet, useNavigate } from "react-router-dom";
 import SideBar from "../../components/Sidebar";
 
 import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../../store";
 import { postLogoutData } from "../../store/slice/authSlice";
 
 const { Header, Content, Sider } = Layout;

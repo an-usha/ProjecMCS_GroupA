@@ -14,10 +14,7 @@ const createUser = async (req, res) => {
     } = req.body;
 
     console.log(JSON.stringify(req.body),"here data");
-    console.log(JSON.stringify(req.body),"here data");
-    console.log(JSON.stringify(req.body),"here data");
-    
-
+  
     // Validate required fields
     if (!first_name || !last_name || !phonenumber || !email || !department || !created_by) {
       return res.status(400).json({
@@ -132,26 +129,6 @@ const updateUser = async (req, res) => {
   }
 };
 
-const verifyUser = async (req, res) => {
-  const sql = `select staffName, username, password from user_info where isActive='Y' and username=? and password=?`;
-  try {
-    const [rows, feilds] = await pool.execute(sql, [
-      req.query.userName,
-      req.query.password,
-    ]);
-    if (rows.length === 1) {
-      res.status(200).json({ status: true, message: "success" });
-    } else {
-      res.status(200).json({ status: false, message: "failed" });
-    }
-  } catch (error) {
-    console.error("Error while validating user during log in " + error);
-    res.status(200).json({ status: false, message: "failed", error: error });
-  }
-};
-
-  
-
 
 const deleteUser = async (req, res) => {
   const sql = `update user_info set isActive='N' where id=? and isActive='Y'`;
@@ -186,7 +163,6 @@ const getAllUsers = async (req,res) =>{
 module.exports = {
   createUser,
   updateUser,
-  verifyUser,
   deleteUser,
   getAllUsers,
   createUserList

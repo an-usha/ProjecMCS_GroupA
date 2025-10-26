@@ -18,9 +18,6 @@ router.post("/createUserList", createUserList)
 // Use PUT for updating an existing user
 router.put("/updateUser", updateUser);
 
-// Use GET for verifying a user
-router.get("/verifyUser", verifyUser);
-
 // Use DELETE for removing a user
 router.delete("/deleteUser", deleteUser);
 

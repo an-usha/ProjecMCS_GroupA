@@ -1,24 +1,19 @@
-import React, { useEffect } from "react";
-import { useApiFetch } from "../../hooks";
-import { Form, Input, Button, Layout, Card } from "antd";
+import { useEffect } from "react";
+import { Form, Input, Button, Card } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { Outlet, useNavigate } from "react-router-dom";
 import "./index.css";
 import Spinner from "../../components/Spinner";
-import logo from "../../assets/images/logo.svg";
+import mcs from "../../assets/images/mcs.jpg";
 import { useSelector, useDispatch } from "react-redux";
 import { postLoginData, setUser } from "../../store/slice/authSlice";
 import { useNotification } from "../../hooks";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeadphones } from "@fortawesome/free-solid-svg-icons";
-import { BACKEND_URL, timeout } from '../../config';
 
 export default function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
   const { data, loading, error } = useSelector((state) => state.auth);
-
+  const { callNotification } = useNotification();
 
   useEffect(() => {
     if (error) {
@@ -32,7 +27,6 @@ export default function Login() {
             userName: data.employeeName,
           })
         );
-
         navigate("/");
         callNotification("Login Success", "success");
       } else {
@@ -40,7 +34,6 @@ export default function Login() {
       }
     }
   }, [data, error]);
-
 
   const onFinish = async (values) => {
     const reqData = {
@@ -50,14 +43,14 @@ export default function Login() {
     dispatch(postLoginData(reqData));
   };
 
-  const { callNotification } = useNotification();
-
   return (
     <div
       style={{
         minHeight: "100vh",
-        background:
-          "linear-gradient(90deg, rgba(13,102,177,1) 0%, rgba(42,136,144,1) 50%, rgba(39,149,114,1) 100%)",
+        backgroundImage: `url(${mcs})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -65,19 +58,18 @@ export default function Login() {
     >
       <Card
         style={{
-          maxWidth: "25%",
-          margin: "0 auto",
-          boxShadow: "0 4px 8px 0 rgba(0, 0, 0, 0.2)",
+          maxWidth: "15%",
+          width: "80%",
+          backgroundColor: "rgba(255, 255, 255, 0.9)",
+          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.3)",
+          borderRadius: "10px",
         }}
       >
         <div style={{ textAlign: "center", marginBottom: "0px" }}>
-          <img src={logo} alt="Logo" style={{ height: 80, width: "90%" }} />
-          <div>
-            <h3 style={{ marginTop: "6px", marginBottom: "22px" }}>
-              <u>MCS Project | First Semester</u> &nbsp;&nbsp;&nbsp;
-              <FontAwesomeIcon icon={faHeadphones} beat size="2xl" />
-            </h3>
-          </div>
+          <h3 style={{ marginTop: "6px", marginBottom: "22px" }}>
+            <u>MCS Project</u><br/>
+            <i>First Semester</i>
+          </h3>
         </div>
 
         <Form name="login-form" onFinish={onFinish}>
@@ -105,12 +97,8 @@ export default function Login() {
           </Form.Item>
           <Form.Item>
             <Button
-              type="primary"
               htmlType="submit"
-              style={{
-                width: "100%",
-                boxShadow: "0 4px 8px 0 rgba(0, 0, 0, 0.2)",
-              }}
+              className="button"
             >
               Log In
             </Button>

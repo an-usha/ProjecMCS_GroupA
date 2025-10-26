@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { Form, Input, Button, Radio, Modal } from "antd";
-import "@ant-design/icons";
-import { useApiFetch } from "../../hooks";
+import { Form, Input, Button, Radio, Modal, Space, Table } from "antd";
 import Spinner from "../../components/Spinner";
-import { Space, Table, Divider, Tag, Spin } from "antd";
+import { useApiFetch } from "../../hooks";
 import { useNotification } from "../../hooks";
 
 function UserDetailLayout() {
   const authState = useSelector((state) => state.auth);
   const userInfo = authState?.userInfo;
+  const token = authState?.token; // ✅ Grab token from Redux
 
+  // API hooks
   const [loadingAllUsers, allUsersResp, allUsersErr, fetchAllUsers] =
     useApiFetch("/user/getAllUsers", true);
 
@@ -28,8 +28,8 @@ function UserDetailLayout() {
 
   const [form] = Form.useForm();
 
+  // Modal open
   const showModal = () => {
-    // Prefill created_by if from userInfo
     if (userInfo) {
       form.setFieldsValue({
         created_by: `${userInfo.first_name || ""} ${userInfo.last_name || ""}`,
@@ -38,18 +38,27 @@ function UserDetailLayout() {
     setOpen(true);
   };
 
+  // Modal close
   const handleCancel = () => {
     setOpen(false);
   };
 
+  // ✅ Create User API call with Token
   const handleFormSubmit = async (values) => {
     const payload = { ...values };
+
     if (!payload.created_by && userInfo) {
       payload.created_by = `${userInfo.first_name || ""} ${userInfo.last_name || ""}`;
     }
 
     try {
-      await callCreateUser({ method: "POST", data: payload });
+      await callCreateUser({
+        method: "POST",
+        data: payload,
+        headers: {
+          Authorization: `Bearer ${token}`, // ✅ Send token here
+        },
+      });
     } catch (err) {
       console.error("Error in createUser:", err);
     }
@@ -59,22 +68,34 @@ function UserDetailLayout() {
       setOpen(false);
       setConfirmLoading(false);
     }, 1000);
+    form.resetFields();
   };
 
+  // ✅ Delete user with token verification
   const handleDeleteUser = async (userdetailId) => {
     try {
-      await callDeleteUser({ method: "POST", data: { userdetailId } });
+      await callDeleteUser({
+        method: "POST",
+        data: { userdetailId },
+        headers: {
+          Authorization: `Bearer ${token}`, // ✅ Token added here too
+        },
+      });
     } catch (err) {
       console.error("Error in deleteUser:", err);
     }
   };
 
-  // When create or delete completes, trigger refetch and notifications
+  // Handle API responses
   useEffect(() => {
     if (createResp) {
       if (createResp.status === true) {
         callNotification("User created successfully", "success");
-        fetchAllUsers();
+        fetchAllUsers({
+          headers: {
+            Authorization: `Bearer ${token}`, // ✅ Token for fetch too
+          },
+        });
       } else {
         callNotification("Error creating user", "error");
       }
@@ -85,7 +106,11 @@ function UserDetailLayout() {
     if (deleteResp) {
       if (deleteResp.status === true) {
         callNotification("User deleted successfully", "success");
-        fetchAllUsers();
+        fetchAllUsers({
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
       } else {
         callNotification("Error deleting user", "error");
       }
@@ -99,13 +124,13 @@ function UserDetailLayout() {
   }, [allUsersResp]);
 
   if (!userInfo) {
-    // Show spinner or some placeholder while userInfo is not loaded
     return <Spinner />;
   }
 
   return (
     <>
       <h2>User List</h2>
+
       {loadingAllUsers ? (
         <Spinner />
       ) : (
@@ -126,7 +151,7 @@ function UserDetailLayout() {
               onFilter: (value, record) => record.gender === value,
             },
             { title: "Phone", dataIndex: "phonenumber", key: "phonenumber" },
-            { title: "email", dataIndex: "emailid", key: "emailid" },
+            { title: "Email", dataIndex: "emailid", key: "emailid" },
             { title: "Department", dataIndex: "department", key: "department" },
             { title: "Created By", dataIndex: "created_by", key: "created_by" },
             {
@@ -144,6 +169,7 @@ function UserDetailLayout() {
                 <Space>
                   <Button
                     danger
+                    loading={loadingDeleteUser}
                     onClick={() => handleDeleteUser(record.userdetailId)}
                   >
                     Delete
@@ -160,6 +186,7 @@ function UserDetailLayout() {
         Create New User
       </Button>
 
+      {/* Create User Modal */}
       <Modal
         title="Create New User"
         open={open}
@@ -201,7 +228,7 @@ function UserDetailLayout() {
             <Input />
           </Form.Item>
           <Form.Item
-            label="email"
+            label="Email"
             name="email"
             rules={[{ required: true, message: "Please input email!" }]}
           >
@@ -214,11 +241,7 @@ function UserDetailLayout() {
           >
             <Input />
           </Form.Item>
-          <Form.Item
-            label="Created By"
-            name="created_by"
-            rules={[{ required: true, message: "Please input created by!" }]}
-          >
+          <Form.Item label="Created By" name="created_by">
             <Input />
           </Form.Item>
         </Form>
