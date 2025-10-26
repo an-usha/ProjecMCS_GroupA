@@ -1,96 +1,64 @@
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const ldap = require("ldapjs");
-const callAPI = require("../config/apims");
-const { verifyUserLocal } = require("./userInfoController");
 const { pool } = require("../config/mysqldatabase");
-const { formattedDateTime } = require('../config/currentDate');
-const tranId = formattedDateTime(new Date());
 
-const adLoginUser = (req, res) => {
-  let { username, password } = req.body;
-  const domainName = username + "@CTZNBANK.COM";
-  console.log(
-    `username: ${username}, domainName: ${domainName}, password:${password} `
-  );
-  const client = ldap.createClient({
-    url: process.env.LDAP_URL,
-  });
+// Register a new employee
+const registerUser = async (req, res) => {
+  const { employeename, password, created_by } = req.body;
 
-  client.bind(domainName, password, (err) => {
-    if (err) {
-      verifyUserLocal(username, password).then((loginStatus) => {
-        if (loginStatus === false) {
-          res
-            .status(200)
-            .send({ status: "failed", message: "invalid credentials" });
-        } else {
-          const accessToken = jwt.sign(
-            { data: loginStatus },
-            process.env.JWT_SECRET,
-            { expiresIn: "30m" }
-          );
-          async function insertToken(username,accessToken){
-          await pool.execute(`delete from user_token_list where domainUserName='${username}'`);
-          await pool.execute(`insert into user_token_list (domainUserName, userToken) values ('${username}','${accessToken}')`);
-          }
-          insertToken(username,accessToken);
-          loginStatus.Data.token = accessToken;
-          loginStatus.Data.image = "";
-          res.status(200).json(loginStatus);
-        }
-      });
-    } else {
-      const functionName = process.env.EMP_DETAIL_BY_DOMAIN;
-      //const requestModel = { domainUserName: `${username}` };
-      const requestModel = { "domainUserName": `${username}`, "TransactionId": formattedDateTime(new Date()) };
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-      async function fetchData() {
-        const empDetail = await callAPI(functionName, requestModel);
-        //const empDetail={"Code":"0","Message":"Operation Successfull","Data":{"solId":"999","solDesc":"Corporate Office","employeeName":"Sagar Binod Adhikari","designation":"Assistant","branchManagerName":"","branchManagerDesignation":"","branchType":"Inside Valley","employeeId":"2547","domainUserName":"adhikari.sagar","isProvinceManager":"N","email":"Sagar.adhikari@ctznbank.com","departmentName":"Digital Banking Unit","phone":"9846169746","functionalTitle":"","photo":"d15dd518-8adb-40ec-9f20-bd5437d11438.PNG"},"DeveloperMessage":null,"Errors":null}
-        console.log(empDetail);
-        if (empDetail) {
-          const accessToken = jwt.sign(
-            { data: empDetail },
-            process.env.JWT_SECRET,
-            { expiresIn: "30m" }
-          );
-          empDetail.Data.token = accessToken;
-          await pool.execute(`delete from user_token_list where domainUserName='${username}'`);
-          await pool.execute(`insert into user_token_list (domainUserName, userToken) values ('${username}','${accessToken}')`);
-          //fetch the staff photo
-          const functionName1 = process.env.STAFF_IMAGE_API;
-          
-          //const requestModel1 = { imageId: empDetail.Data.photo };
-          const requestModel1 = { imageId: empDetail.Data.photo, "TransactionId": "Img-"+tranId };
-          const result1 = await callAPI(functionName1, requestModel1);
-          empDetail.Data.image = result1.Data;
-          res.status(200).json(empDetail);
-        } else {
-          res.status(401).send("Authentication Failed");
-        }
-      }
-      fetchData();
-    }
-    client.unbind();
-  });
+    const sql = `INSERT INTO EmployeeList (employeename, password, created_by)
+                 VALUES (?, ?, ?)`;
+
+    await pool.execute(sql, [employeename, hashedPassword, created_by]);
+
+    res.status(201).json({ status: true, message: "User registered successfully" });
+  } catch (error) {
+    console.error("Error registering user:", error);
+    res.status(500).json({ status: false, message: "Failed to register user" });
+  }
 };
 
-const logoutUser =async (req,res)=>{
-  console.log('User logout functin called');
-  let {token}=req.body
-  //console.log(token);
-  try{
-      let [rowsDeleteToken,fieldsDeleteToken]=await pool.execute(`delete from user_token_list where userToken='${token}'`);
-      //console.log(rowsDeleteToken.affectedRows);
-      if(rowsDeleteToken.affectedRows > 0){
-        res.status(200).json({status:true,'message':'success'});
-      }else{
-        res.status(200).json({status:false,'message':'failed to delete token'});
-      }
-  }catch(error){
-    res.status(200).json({status:false, 'message':'failed'})
+// Authenticate user against the database
+const authenticateUser = async (employeename, password) => {
+  const sql = `SELECT * FROM EmployeeList WHERE employeename = ? LIMIT 1`;
+  const [rows] = await pool.execute(sql, [employeename]);
+
+  if (rows.length === 0) return null; // User not found
+
+  const user = rows[0];
+
+  // Check password with bcrypt
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) return null;
+
+  // Exclude password from the returned user object
+  const { password: pwd, ...userWithoutPassword } = user;
+  return userWithoutPassword;
+};
+
+// Login user and issue JWT
+const loginUser = async (req, res) => {
+  const { employeename, password } = req.body;
+
+  try {
+    const user = await authenticateUser(employeename, password);
+    if (!user) {
+      return res.status(401).json({ status: false, message: "Invalid credentials" });
+    }
+
+    console.log(employeename,password);
+    
+    // Generate JWT token
+    const token = jwt.sign({ data: user }, process.env.JWT_SECRET, { expiresIn: "24h" });
+
+    res.status(200).json({ status: true,token, data: {EmployeeName: employeename} });
+  } catch (error) {
+    console.error("Error logging in:", error);
+    res.status(500).json({ status: false, message: "Failed to login" });
   }
+};
 
-}
-
-module.exports = { adLoginUser,logoutUser };
+module.exports = { registerUser, loginUser };

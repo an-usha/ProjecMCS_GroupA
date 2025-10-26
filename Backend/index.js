@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 const homerouter = require("./routes/home");
 const errorRouter = require("./routes/errorRoute");
 const authRouter = require("./routes/authRoute");
-const apimsRouter = require("./routes/apimsRoute");
+// const apimsRouter = require("./routes/apimsRoute");
 const lienRequestRoute = require("./routes/lienRequestRoute");
 const cardBlockRoute = require("./routes/cardBlockRoute");
 const userInfoRoute= require("./routes/userInfoRoute");
@@ -40,16 +40,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(homerouter);
 app.use("/api/auth", authRouter);
-app.use("/api/apims", verifyToken, apimsRouter);
-app.use("/api/lein", verifyToken, lienRequestRoute);
-app.use("/api/card", verifyToken, cardBlockRoute);
+// app.use("/api/apims", verifyToken, apimsRouter);
+// app.use("/api/lein", verifyToken, lienRequestRoute);
+// app.use("/api/card", verifyToken, cardBlockRoute);
 app.use("/api/user", verifyToken, userInfoRoute);
-app.use("/api/missedCall", verifyToken, missedCallListRoute);
+// app.use("/api/missedCall", verifyToken, missedCallListRoute);
 
 
 //app.use("/api/apims", apimsRouter);
 app.use(errorRouter);
 
-app.listen(process.env.PORT, () => {
-  console.log(`Server started at port ${process.env.PORT}`);
+const port = process.env.PORT || 5001;  // 3000 as default
+app.listen(port, () => {
+  console.log(`Server started at port ${port}`);
 });

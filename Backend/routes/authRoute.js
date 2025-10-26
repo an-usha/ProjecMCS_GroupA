@@ -1,11 +1,11 @@
-const express=require('express');
+const express = require('express');
+const router = express.Router();
+const { registerUser, loginUser } = require('../controller/authController');
 
-const router=express.Router();
-const {adLoginUser,logoutUser}=require('../controller/authController');
+// Register user
+router.post('/register', registerUser);
 
-//for active directory login
+// Login user
+router.post('/login', loginUser);
 
-router.post('/adlogin', adLoginUser);
-router.post('/logout', logoutUser);
-
-module.exports=router;
+module.exports = router;

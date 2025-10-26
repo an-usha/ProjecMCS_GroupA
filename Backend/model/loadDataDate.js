@@ -1,8 +1,8 @@
-class LoadDataDate{
-    id;
-    calldate;
-    dataFetchFromDB;
-    isDeleted;
-}
+// class LoadDataDate{
+//     id;
+//     calldate;
+//     dataFetchFromDB;
+//     isDeleted;
+// }
 
-module.exports=LoadDataDate;
+// module.exports=LoadDataDate;

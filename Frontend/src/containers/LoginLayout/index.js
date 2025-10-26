@@ -5,14 +5,13 @@ import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { Outlet, useNavigate } from "react-router-dom";
 import "./index.css";
 import Spinner from "../../components/Spinner";
-import axios from "axios";
-import { BACKEND_URL } from "./../../config";
 import logo from "../../assets/images/logo.svg";
 import { useSelector, useDispatch } from "react-redux";
 import { postLoginData, setUser } from "../../store/slice/authSlice";
 import { useNotification } from "../../hooks";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeadphones } from "@fortawesome/free-solid-svg-icons";
+import { BACKEND_URL, timeout } from '../../config';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -27,20 +26,10 @@ export default function Login() {
       navigate("/auth/login");
     }
     if (data) {
-      if (data.Code === "0") {
+      if (data.Code === "0" || data.status === true) {
         dispatch(
           setUser({
-            userName: data.Data?.employeeName,
-            solId: data.Data?.solId,
-            email: data.Data?.email,
-            departmentName: data.Data?.departmentName,
-            token: data.Data?.token,
-            domainName: data.Data?.domainUserName,
-            solDesc: data.Data?.solDesc,
-            designation: data.Data?.designation,
-            functionalTitle: data.Data?.functionalTitle,
-            photoId: data.Data?.photo,
-            image:data.Data?.image,
+            userName: data.employeeName,
           })
         );
 
@@ -55,7 +44,7 @@ export default function Login() {
 
   const onFinish = async (values) => {
     const reqData = {
-      username: values.username.replace("@ctznbank.com", ""),
+      employeename: values.username,
       password: values.password,
     };
     dispatch(postLoginData(reqData));

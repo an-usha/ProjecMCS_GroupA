@@ -1,29 +1,109 @@
-const UserInfo = require("../model/userInfo");
-
 const { pool } = require("../config/mysqldatabase");
 const { formattedDateTime } = require("../config/currentDate");
 
 const createUser = async (req, res) => {
-  const sql = `insert into user_info (staffName,username,password,createdOn,createdBy,createdByName)
-            values (?,?,?,?,?,?)`;
-  let currentDate = formattedDateTime(new Date());
   try {
-    const [rows, feilds] = await pool.execute(sql, [
-      req.query.staffName,
-      req.query.userName,
-      req.query.password,
-      currentDate,
-      req.body.token_data.domainUserName,
-      req.body.token_data.employeeName,
+    const {
+      first_name,
+      last_name,
+      gender,
+      phonenumber,
+      email,
+      department,
+      created_by
+    } = req.body;
+
+    console.log(JSON.stringify(req.body),"here data");
+    console.log(JSON.stringify(req.body),"here data");
+    console.log(JSON.stringify(req.body),"here data");
+    
+
+    // Validate required fields
+    if (!first_name || !last_name || !phonenumber || !email || !department || !created_by) {
+      return res.status(400).json({
+        status: false,
+        message: "Missing required fields. first_name, last_name, phonenumber, email, department, created_by are required."
+      });
+    }
+
+    // Step 1: Get userId from userlist by email (optional)
+    let userId = null;
+    const [userRows] = await pool.execute(
+      "SELECT id FROM userlist WHERE email = ?",
+      [email]
+    );
+
+    if (userRows.length > 0) {
+      userId = userRows[0].id;
+    }
+
+    // Step 2: Insert into userdetails
+    const sql = `
+      INSERT INTO userdetails
+      (userid, first_name, last_name, gender, phonenumber, emailid, department, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const [rows] = await pool.execute(sql, [
+      userId,
+      first_name,
+      last_name,
+      gender,
+      phonenumber,
+      email,
+      department,
+      created_by
     ]);
+
     if (rows.affectedRows === 1) {
-      res.status(200).json({ status: true, message: "success" });
+      res.status(201).json({
+        status: true,
+        message: "User details created successfully",
+        userdetailId: rows.insertId
+      });
     } else {
-      res.status(200).json({ status: false, message: "failed}" });
+      res.status(400).json({ status: false, message: "Failed to create user details" });
     }
   } catch (error) {
-    console.log("Error while creating user for call center application ");
-    res.status(200).json({ status: false, message: "failed", error: error });
+    console.error("Error while creating user details:", error);
+    res.status(500).json({ status: false, message: "Server error", error: error.message });
+  }
+};
+
+
+const createUserList = async (req, res) => {
+  try {
+    const { fullname, email } = req.body;
+
+    if (!fullname || !email) {
+      return res.status(400).json({ status: false, message: "fullname and email are required" });
+    }
+
+    // Step 1: Check if user already exists
+    const [existingUsers] = await pool.execute(
+      "SELECT id FROM userlist WHERE email = ?",
+      [email]
+    );
+
+    if (existingUsers.length > 0) {
+      return res.status(400).json({ status: false, message: "User already exists" });
+    }
+
+    // Step 2: Insert new user
+    const sql = `
+      INSERT INTO userlist (fullname, email)
+      VALUES (?, ?)
+    `;
+    const [result] = await pool.execute(sql, [fullname, email]);
+
+    if (result.affectedRows === 1) {
+      res.status(201).json({ status: true, message: "User added successfully", userId: result.insertId });
+    } else {
+      res.status(500).json({ status: false, message: "Failed to add user" });
+    }
+  } catch (error) {
+    console.error("Error adding user to userlist:", error);
+    res.status(500).json({ status: false, message: "Server error", error: error.message });
   }
 };
 
@@ -70,50 +150,6 @@ const verifyUser = async (req, res) => {
   }
 };
 
-// const verifyUserLocal = async (username, password) => {
-//   const sql = `select staffName,username,password from user_info where isActive='Y' and username=? and password=?`;
-//   try {
-//     const [rows, feilds] = await pool.execute(sql, [
-//       username,
-//       password,
-//     ]);
-//     if (rows.length === 1) {
-//        return ({
-//         "Code":"0",
-//         "Message": "Operation Successfull",
-//         "Data":{
-//         'employeeName':staffName,'domainUserName':username}});
-//     } else {
-//       return false;
-//     }
-//   } catch (error) {
-//     return false;
-//   }
-// };
-
-const verifyUserLocal = (username, password) => {
-    return new Promise((resolve, reject) => {
-      const sql = `SELECT staffName, username, password FROM user_info WHERE isActive='Y' AND username=? AND password=?`;
-      pool.execute(sql, [username, password])
-        .then(([rows, fields]) => {
-          if (rows.length === 1) {
-            resolve({
-              Code: "0",
-              Message: "Operation Successful",
-              Data: {
-                employeeName: rows[0].staffName,
-                domainUserName: username
-              }
-            });
-          } else {
-            resolve(false);
-          }
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
-  };
   
 
 
@@ -133,7 +169,7 @@ const deleteUser = async (req, res) => {
 };
 
 const getAllUsers = async (req,res) =>{
-  const sql =`select * from user_info `;
+  const sql =`select * from userdetails `;
   try{
       const [rows,feilds] = await pool.execute(sql);
       if(rows.length ===0){
@@ -151,7 +187,7 @@ module.exports = {
   createUser,
   updateUser,
   verifyUser,
-  verifyUserLocal,
   deleteUser,
   getAllUsers,
+  createUserList
 };

@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-import { BACKEND_URL } from "./../../config";
+import { BACKEND_URL, timeout } from '../../config';
 //import { BACKEND_URL } from "../../config";
 
 const initialState = {
@@ -13,7 +13,7 @@ export const postLoginData = createAsyncThunk(
   "auth/postLoginData",
   async (payload) => {
     try {
-      const url = `${BACKEND_URL}/auth/adlogin`;
+      const url = `${BACKEND_URL}/auth/login`;
       const { data } = await axios.post(url, payload);
       return data;
     } catch (error) {

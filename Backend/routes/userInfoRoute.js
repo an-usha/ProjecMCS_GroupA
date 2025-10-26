@@ -6,13 +6,25 @@ const {
   updateUser,
   verifyUser,
   deleteUser,
-  getAllUsers
+  getAllUsers,
+  createUserList
 } = require("../controller/userInfoController");
 
-router.get("/createUser", createUser);
-router.get("/updateUser", updateUser);
+// Use POST for creating a new user
+router.post("/createUser", createUser);
+
+router.post("/createUserList", createUserList)
+
+// Use PUT for updating an existing user
+router.put("/updateUser", updateUser);
+
+// Use GET for verifying a user
 router.get("/verifyUser", verifyUser);
-router.get("/deleteUser", deleteUser);
+
+// Use DELETE for removing a user
+router.delete("/deleteUser", deleteUser);
+
+// Use GET for retrieving all users
 router.get("/getAllUsers", getAllUsers);
 
 module.exports = router;

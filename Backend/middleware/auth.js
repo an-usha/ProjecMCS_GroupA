@@ -14,31 +14,18 @@ const checkAPIKey = (req, res, next) => {
   }
 };
 
-//To check the validity of access token
 const verifyToken = async (req, res, next) => {
-  if (req.headers.authorization) {
-    const token = req.headers.authorization.split(" ")[1];
-    //console.log("Token " + token);
-    let [tokenCount,fieldTokenCount]=await pool.execute(`select count(*) tokenCount from user_token_list where userToken='${token}'`);
-      //console.log(tokenCount[0]);
-      if(tokenCount[0].tokenCount !== 1){
-        res.status(401).json("Invalid Token provided");
-        return;
-      }
-    await jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) {
-        res.status(401).json("Token is not valid" + err);
-        console.log(jwt.decode(token).data.Data);
-        console.log(err.message);
-      } else {
-        console.log("Token is valid");
-        req.body.token_data = jwt.decode(token).data.Data;
-        next();
-      }
-    });
-  } else {
-    console.log("Token is invalid or not provided");
-    res.status(401).json("Token is not provided");
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    return res.status(401).json("Token not provided");
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded.data;
+    next();
+  } catch (err) {
+    res.status(401).json("Invalid or expired token");
   }
 };
 

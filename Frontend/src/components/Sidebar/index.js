@@ -66,9 +66,9 @@ function SideBar() {
           <Link to={"/cardBlockReport"}>Card Block </Link>{" "}
         </Menu.Item>
       </SubMenu>
-      <SubMenu key="sub7" icon={<UserOutlined />} title="Customer Detail">
+      <SubMenu key="sub7" icon={<UserOutlined />} title="User Detail">
         <Menu.Item key="16">
-          <Link to={"/customerDetail"}>View Details</Link>
+          <Link to={"/userDetails"}>User Details</Link>
         </Menu.Item>
       </SubMenu>
       <SubMenu key="sub5" icon={<PieChartOutlined />} title="Call Center">

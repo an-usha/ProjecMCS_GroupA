@@ -1,12 +1,12 @@
-class UserInfo{
-    id;
-    username;
-    password;
-    isActive;
-    createdOn;
-    createdBy;
-    createdByName;
-}
+// class UserInfo{
+//     id;
+//     username;
+//     password;
+//     isActive;
+//     createdOn;
+//     createdBy;
+//     createdByName;
+// }
 
-module.exports=UserInfo;
+// module.exports=UserInfo;
 

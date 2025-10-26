@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Button, Col, Row, Select, Radio, Modal } from "antd";
+import { useSelector } from "react-redux";
+import { Form, Input, Button, Radio, Modal } from "antd";
 import "@ant-design/icons";
 import { useApiFetch } from "../../hooks";
 import Spinner from "../../components/Spinner";
@@ -7,33 +8,33 @@ import { Space, Table, Divider, Tag, Spin } from "antd";
 import { useNotification } from "../../hooks";
 
 function UserDetailLayout() {
-  const [loadingAllUsers, getAllUsersResponse, getAllUsersError, getAllUsers] =
-    useApiFetch("/user/getAllUsers");
+  const authState = useSelector((state) => state.auth);
+  const userInfo = authState?.userInfo;
 
-  const [
-    loadingCreateUser,
-    getCreateUserResponse,
-    getCreateUserError,
-    createUser,
-  ] = useApiFetch("/user/createUser");
+  const [loadingAllUsers, allUsersResp, allUsersErr, fetchAllUsers] =
+    useApiFetch("/user/getAllUsers", true);
 
-  const [
-    loadingDeleteUser,
-    getDeleteUserResponse,
-    getDeleteUserError,
-    deleteUser,
-  ] = useApiFetch("/user/deleteUser");
+  const [loadingCreateUser, createResp, createErr, callCreateUser] =
+    useApiFetch("/user/createUser");
+
+  const [loadingDeleteUser, deleteResp, deleteErr, callDeleteUser] =
+    useApiFetch("/user/deleteUser");
 
   const { callNotification } = useNotification();
 
   const [userList, setUserList] = useState([]);
-  const [uniqueStaff, setUniqueStaff] = useState([]);
   const [open, setOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
 
   const [form] = Form.useForm();
 
   const showModal = () => {
+    // Prefill created_by if from userInfo
+    if (userInfo) {
+      form.setFieldsValue({
+        created_by: `${userInfo.first_name || ""} ${userInfo.last_name || ""}`,
+      });
+    }
     setOpen(true);
   };
 
@@ -41,202 +42,184 @@ function UserDetailLayout() {
     setOpen(false);
   };
 
-  const createUserLogin = async (values) => {
-    await createUser(values);
-  };
+  const handleFormSubmit = async (values) => {
+    const payload = { ...values };
+    if (!payload.created_by && userInfo) {
+      payload.created_by = `${userInfo.first_name || ""} ${userInfo.last_name || ""}`;
+    }
 
-  const handleFormSubmit = (values) => {
-    console.log(values);
-    createUserLogin(values);
+    try {
+      await callCreateUser({ method: "POST", data: payload });
+    } catch (err) {
+      console.error("Error in createUser:", err);
+    }
+
     setConfirmLoading(true);
     setTimeout(() => {
       setOpen(false);
       setConfirmLoading(false);
-    }, 3000);
+    }, 1000);
   };
 
-  useEffect(() => {
-    getAllUsers();
-  }, [, getCreateUserResponse]);
-
-  let staffArray = [];
-
-  useEffect(() => {
-    if (getAllUsersResponse) {
-      console.log(getAllUsersResponse);
-      if (getAllUsersResponse.status === true && getAllUsersResponse.data !== '') {
-        setUserList(getAllUsersResponse.data);
-        getAllUsersResponse.data.forEach((e) => {
-          staffArray.push({ text: e.createdByName, value: e.createdByName });
-        });
-        setUniqueStaff(
-          Array.from(new Set(staffArray.map((item) => item.text))).map(
-            (text) => ({
-              text,
-              value: text,
-            })
-          )
-        );
-      }
+  const handleDeleteUser = async (userdetailId) => {
+    try {
+      await callDeleteUser({ method: "POST", data: { userdetailId } });
+    } catch (err) {
+      console.error("Error in deleteUser:", err);
     }
-  }, [getAllUsersResponse]);
-
-  const handleBlockUser = (id) => {
-    deleteUser({ id: id });
   };
 
+  // When create or delete completes, trigger refetch and notifications
   useEffect(() => {
-    if (getDeleteUserResponse) {
-      if (getDeleteUserResponse.status === true) {
-        callNotification("User Block Successful", "success");
-        getAllUsers();
-      } else if (getDeleteUserResponse.status === false) {
-        callNotification("Error Occurred ", "error");
+    if (createResp) {
+      if (createResp.status === true) {
+        callNotification("User created successfully", "success");
+        fetchAllUsers();
+      } else {
+        callNotification("Error creating user", "error");
       }
     }
-  }, [getDeleteUserResponse]);
+  }, [createResp]);
 
-  const columns = [
-    {
-      title: "Staff Name",
-      dataIndex: "staffName",
-      key: "staffName",
-    },
-    {
-      title: "Username",
-      dataIndex: "username",
-      key: "username",
-    },
-    {
-      title: "Status",
-      dataIndex: "isActive",
-      key: "isActive",
-      filters: [
-        {
-          text: "Active",
-          value: "Y",
-        },
-        {
-          text: "Blocked",
-          value: "N",
-        },
-      ],
-      onFilter: (value, record) => record.isActive.startsWith(value),
-      filterSearch: true,
-      render: (text) => {
-        return text === "Y" ? "Active" : "Blocked";
-      },
-    },
-    {
-      title: "Created By",
-      dataIndex: "createdByName",
-      key: "createdByName",
-      filters: uniqueStaff,
-      onFilter: (value, record) => record.createdByName.startsWith(value),
-    },
-    {
-      title: "Created Date",
-      dataIndex: "createdOn",
-      key: "createdOn",
-      sorter: (a, b) => new Date(a.createdOn) - new Date(b.createdOn),
-      render: (text) => {
-        const date = text.split("T");
-        return date[0];
-      },
-    },
-    {
-      title: "Action",
-      dataIndex: "",
-      key: "action",
-      render: (_, record) => (
-        <Space size="middle">
-          {record.isActive === "Y" ? (
-            <Button onClick={() => handleBlockUser(record.id)} type="primary">
-              Disable User
-            </Button>
-          ) : null}
-        </Space>
-      ),
-    },
-  ];
+  useEffect(() => {
+    if (deleteResp) {
+      if (deleteResp.status === true) {
+        callNotification("User deleted successfully", "success");
+        fetchAllUsers();
+      } else {
+        callNotification("Error deleting user", "error");
+      }
+    }
+  }, [deleteResp]);
+
+  useEffect(() => {
+    if (allUsersResp?.status === true) {
+      setUserList(allUsersResp.data);
+    }
+  }, [allUsersResp]);
+
+  if (!userInfo) {
+    // Show spinner or some placeholder while userInfo is not loaded
+    return <Spinner />;
+  }
 
   return (
     <>
-      <br />
-      <h3>User List for Call Center</h3>
-      <div>
-        {getAllUsersResponse && (
-          <Table dataSource={userList} columns={columns} />
-        )}
-      </div>
-      <div>
-        <Button type="primary" onClick={showModal}>
-          Create New User
-        </Button>
-      </div>
+      <h2>User List</h2>
+      {loadingAllUsers ? (
+        <Spinner />
+      ) : (
+        <Table
+          dataSource={userList}
+          columns={[
+            { title: "First Name", dataIndex: "first_name", key: "first_name" },
+            { title: "Last Name", dataIndex: "last_name", key: "last_name" },
+            {
+              title: "Gender",
+              dataIndex: "gender",
+              key: "gender",
+              filters: [
+                { text: "Male", value: "Male" },
+                { text: "Female", value: "Female" },
+                { text: "Other", value: "Other" },
+              ],
+              onFilter: (value, record) => record.gender === value,
+            },
+            { title: "Phone", dataIndex: "phonenumber", key: "phonenumber" },
+            { title: "Email", dataIndex: "emailid", key: "emailid" },
+            { title: "Department", dataIndex: "department", key: "department" },
+            { title: "Created By", dataIndex: "created_by", key: "created_by" },
+            {
+              title: "Created Date",
+              dataIndex: "created_date",
+              key: "created_date",
+              sorter: (a, b) =>
+                new Date(a.created_date) - new Date(b.created_date),
+              render: (text) => (text ? text.split("T")[0] : ""),
+            },
+            {
+              title: "Action",
+              key: "action",
+              render: (_, record) => (
+                <Space>
+                  <Button
+                    danger
+                    onClick={() => handleDeleteUser(record.userdetailId)}
+                  >
+                    Delete
+                  </Button>
+                </Space>
+              ),
+            },
+          ]}
+          rowKey="userdetailId"
+        />
+      )}
+
+      <Button type="primary" style={{ marginTop: 16 }} onClick={showModal}>
+        Create New User
+      </Button>
+
       <Modal
-        title="Create New User | Call Center Contract Staffs"
+        title="Create New User"
         open={open}
         onOk={() => form.submit()}
         confirmLoading={confirmLoading}
         onCancel={handleCancel}
       >
-        <br />
-        <Form onFinish={handleFormSubmit} form={form}>
+        <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
           <Form.Item
-            label="Staff Name"
-            name="staffName"
-            labelCol={{ span: 8 }}
-            rules={[
-              {
-                required: true,
-                message: "Please input the staff Name!",
-              },
-              {
-                max: 30,
-                message: "Staff Name can not exceed 50 characters",
-              },
-            ]}
+            label="First Name"
+            name="first_name"
+            rules={[{ required: true, message: "Please input first name!" }]}
           >
-            <Input type="text" style={{ width: "200px" }} />
+            <Input />
           </Form.Item>
           <Form.Item
-            label="Login Username"
-            name="userName"
-            labelCol={{ span: 8 }}
-            rules={[
-              {
-                required: true,
-                message: "Please input the login username!",
-              },
-              {
-                max: 20,
-                message: "Login username can not exceed 20 characters",
-              },
-            ]}
+            label="Last Name"
+            name="last_name"
+            rules={[{ required: true, message: "Please input last name!" }]}
           >
-            <Input type="text" style={{ width: "200px" }} />
+            <Input />
           </Form.Item>
           <Form.Item
-            label="Password"
-            name="password"
-            labelCol={{ span: 8 }}
-            rules={[
-              {
-                required: true,
-                message: "Please input the login password!",
-              },
-              {
-                max: 20,
-                message: "Login password can not exceed 20 characters",
-              },
-              {
-                min: 8,
-                message: "Login password should be minimum 8 characters",
-              },
-            ]}
+            label="Gender"
+            name="gender"
+            rules={[{ required: true, message: "Please select gender!" }]}
           >
-            <Input type="password" style={{ width: "200px" }} />
+            <Radio.Group>
+              <Radio value="Male">Male</Radio>
+              <Radio value="Female">Female</Radio>
+              <Radio value="Other">Other</Radio>
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item
+            label="Phone Number"
+            name="phonenumber"
+            rules={[{ required: true, message: "Please input phone number!" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Email"
+            name="emailid"
+            rules={[{ required: true, message: "Please input email!" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Department"
+            name="department"
+            rules={[{ required: true, message: "Please input department!" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Created By"
+            name="created_by"
+            rules={[{ required: true, message: "Please input created by!" }]}
+          >
+            <Input />
           </Form.Item>
         </Form>
       </Modal>
