@@ -131,7 +131,7 @@ const AdminLayout = () => {
             justifyContent: "center",
           }}
         >
-          <img
+          {/* <img
             src={logo}
             style={{
               height: "40px",
@@ -139,7 +139,7 @@ const AdminLayout = () => {
               width: collapsed ? "80%" : "90%",
               marginTop: "-8px",
             }}
-          />
+          /> */}
         </div>
         <SideBar />
       </Sider>
@@ -187,7 +187,7 @@ const AdminLayout = () => {
               <h1
                 style={{ color: "#fff", fontSize: "19px", fontWeight: "600" }}
               >
-                Citizens Call Center
+                MCS Project | First Semester
               </h1>
             </div>
 

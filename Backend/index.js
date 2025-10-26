@@ -43,7 +43,7 @@ app.use("/api/auth", authRouter);
 // app.use("/api/apims", verifyToken, apimsRouter);
 // app.use("/api/lein", verifyToken, lienRequestRoute);
 // app.use("/api/card", verifyToken, cardBlockRoute);
-app.use("/api/user", verifyToken, userInfoRoute);
+app.use("/api/user", userInfoRoute);
 // app.use("/api/missedCall", verifyToken, missedCallListRoute);
 
 

@@ -74,7 +74,7 @@ export default function Login() {
           <img src={logo} alt="Logo" style={{ height: 80, width: "90%" }} />
           <div>
             <h3 style={{ marginTop: "6px", marginBottom: "22px" }}>
-              <u>Citizen Call Center</u> &nbsp;&nbsp;&nbsp;
+              <u>MCS Project | First Semester</u> &nbsp;&nbsp;&nbsp;
               <FontAwesomeIcon icon={faHeadphones} beat size="2xl" />
             </h3>
           </div>

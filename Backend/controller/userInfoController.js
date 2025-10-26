@@ -22,11 +22,11 @@ const createUser = async (req, res) => {
     if (!first_name || !last_name || !phonenumber || !email || !department || !created_by) {
       return res.status(400).json({
         status: false,
-        message: "Missing required fields. first_name, last_name, phonenumber, email, department, created_by are required."
+        message: "Missing required fields. first_name, last_name, phonenumber, emailid, department, created_by are required."
       });
     }
 
-    // Step 1: Get userId from userlist by email (optional)
+    // Step 1: Get userId from userlist by emailid (optional)
     let userId = null;
     const [userRows] = await pool.execute(
       "SELECT id FROM userlist WHERE email = ?",
@@ -73,16 +73,16 @@ const createUser = async (req, res) => {
 
 const createUserList = async (req, res) => {
   try {
-    const { fullname, email } = req.body;
+    const { fullname, emailid } = req.body;
 
-    if (!fullname || !email) {
-      return res.status(400).json({ status: false, message: "fullname and email are required" });
+    if (!fullname || !emailid) {
+      return res.status(400).json({ status: false, message: "fullname and emailid are required" });
     }
 
     // Step 1: Check if user already exists
     const [existingUsers] = await pool.execute(
-      "SELECT id FROM userlist WHERE email = ?",
-      [email]
+      "SELECT id FROM userlist WHERE emailid = ?",
+      [emailid]
     );
 
     if (existingUsers.length > 0) {
@@ -91,10 +91,10 @@ const createUserList = async (req, res) => {
 
     // Step 2: Insert new user
     const sql = `
-      INSERT INTO userlist (fullname, email)
+      INSERT INTO userlist (fullname, emailid)
       VALUES (?, ?)
     `;
-    const [result] = await pool.execute(sql, [fullname, email]);
+    const [result] = await pool.execute(sql, [fullname, emailid]);
 
     if (result.affectedRows === 1) {
       res.status(201).json({ status: true, message: "User added successfully", userId: result.insertId });

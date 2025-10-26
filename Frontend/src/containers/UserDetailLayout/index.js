@@ -126,7 +126,7 @@ function UserDetailLayout() {
               onFilter: (value, record) => record.gender === value,
             },
             { title: "Phone", dataIndex: "phonenumber", key: "phonenumber" },
-            { title: "Email", dataIndex: "emailid", key: "emailid" },
+            { title: "email", dataIndex: "emailid", key: "emailid" },
             { title: "Department", dataIndex: "department", key: "department" },
             { title: "Created By", dataIndex: "created_by", key: "created_by" },
             {
@@ -201,8 +201,8 @@ function UserDetailLayout() {
             <Input />
           </Form.Item>
           <Form.Item
-            label="Email"
-            name="emailid"
+            label="email"
+            name="email"
             rules={[{ required: true, message: "Please input email!" }]}
           >
             <Input />
