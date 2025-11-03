@@ -86,6 +86,8 @@ function UserDetailLayout() {
     }
   };
 
+  const handleUpdate = async(userdetailId)=>{};
+
   // Handle API responses
   useEffect(() => {
     if (createResp) {
@@ -173,6 +175,12 @@ function UserDetailLayout() {
                     onClick={() => handleDeleteUser(record.userdetailId)}
                   >
                     Delete
+                  </Button>
+                  <Button
+                    default
+                    onClick={() => handleUpdate(record.userdetailId)}
+                  >
+                    Update
                   </Button>
                 </Space>
               ),

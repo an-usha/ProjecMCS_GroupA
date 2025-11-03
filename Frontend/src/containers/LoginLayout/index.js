@@ -4,7 +4,7 @@ import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { Outlet, useNavigate } from "react-router-dom";
 import "./index.css";
 import Spinner from "../../components/Spinner";
-import mcs from "../../assets/images/mcs.jpg";
+import mcsWallpaper from "../../assets/images/mcsWallpaper.jpg";
 import { useSelector, useDispatch } from "react-redux";
 import { postLoginData, setUser } from "../../store/slice/authSlice";
 import { useNotification } from "../../hooks";
@@ -47,7 +47,7 @@ export default function Login() {
     <div
       style={{
         minHeight: "100vh",
-        backgroundImage: `url(${mcs})`,
+        backgroundImage: `url(${mcsWallpaper})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
